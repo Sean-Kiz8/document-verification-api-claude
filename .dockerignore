@@ -1,0 +1,40 @@
+# Git
+.git
+.gitignore
+
+# Environment files
+.env
+.env.local
+
+# Documentation
+README.md
+CLAUDE.md
+
+# Task Master
+.taskmaster/
+.claude/
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+logs/
+
+# Coverage
+coverage/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+
+# Node modules (if any)
+node_modules/
+
+# Test artifacts
+test-results/

@@ -7,6 +7,7 @@ import { getLlamaParseHealth, initializeLlamaParse } from "@config/llama_parse.t
 import { DocumentQueries } from "@database/queries.ts";
 import { storageService } from "@services/storage_service.ts";
 import { authMiddleware, skipAuth } from "@middleware/auth.ts";
+// import { errorHandlingMiddleware } from "@middleware/error_handling.ts"; // TODO: Fix TypeScript issues
 import { apiKeyRouter } from "@routes/api_keys.ts";
 import { documentsRouter } from "@routes/documents.ts";
 import { monitoringRouter } from "@routes/monitoring.ts";
@@ -50,8 +51,17 @@ async function startServer() {
 
     // Initialize S3/R2 storage
     logger.info("Initializing S3/R2 storage...");
-    await initializeS3();
-    logger.info("S3/R2 storage initialized successfully");
+    try {
+      await initializeS3();
+      logger.info("S3/R2 storage initialized successfully");
+    } catch (error) {
+      if (config.environment === "development") {
+        logger.warn("S3/R2 storage initialization failed (development mode):", error);
+        logger.warn("File upload features will be limited without S3 configuration");
+      } else {
+        throw error;
+      }
+    }
 
     // Initialize Redis cache
     logger.info("Initializing Redis cache...");
@@ -60,8 +70,17 @@ async function startServer() {
 
     // Initialize Llama Parse OCR
     logger.info("Initializing Llama Parse OCR...");
-    await initializeLlamaParse();
-    logger.info("Llama Parse OCR initialized successfully");
+    try {
+      await initializeLlamaParse();
+      logger.info("Llama Parse OCR initialized successfully");
+    } catch (error) {
+      if (config.environment === "development") {
+        logger.warn("Llama Parse OCR initialization failed (development mode):", error);
+        logger.warn("OCR features will be limited without Llama Parse API key");
+      } else {
+        throw error;
+      }
+    }
 
     // Initialize async processing pipeline
     // TODO: Enable after fixing TypeScript issues
@@ -77,18 +96,55 @@ async function startServer() {
     router.get("/health", skipAuth(), async (ctx) => {
       try {
         const dbHealth = await getDatabaseHealth();
-        const s3Health = await getS3Health();
         const redisHealth = await getRedisHealth();
-        const llamaParseHealth = await getLlamaParseHealth();
+
+        // S3 and Llama Parse are optional in development - start with defaults
+        let s3Health = {
+          status: "unhealthy" as "healthy" | "unhealthy",
+          bucket: "not_configured",
+          endpoint: "not_configured",
+          lastCheck: new Date().toISOString(),
+          latency: undefined as number | undefined,
+        };
+        let llamaParseHealth = {
+          status: "unhealthy" as "healthy" | "unhealthy",
+          apiKey: "not_configured",
+          baseUrl: "not_configured",
+          lastCheck: new Date().toISOString(),
+          latency: undefined as number | undefined,
+        };
+        let storageStats = { service: "s3", status: "unavailable", bucket: "not_configured" };
+
+        try {
+          const actualS3Health = await getS3Health();
+          s3Health = { ...actualS3Health, latency: actualS3Health.latency };
+          storageStats = await storageService.getStorageStats();
+        } catch (error) {
+          if (config.environment !== "development") {
+            throw error;
+          }
+        }
+
+        try {
+          const actualLlamaHealth = await getLlamaParseHealth();
+          llamaParseHealth = { ...actualLlamaHealth, latency: actualLlamaHealth.latency };
+        } catch (error) {
+          if (config.environment !== "development") {
+            throw error;
+          }
+        }
+
         // const pipelineHealth = await pipelineService.getHealthStatus(); // TODO: Enable after TypeScript fixes
         const pipelineHealth = { status: "healthy", pipeline: true, workers: {}, queues: {} };
-        const storageStats = await storageService.getStorageStats();
 
-        const overallHealthy = dbHealth.status === "healthy" &&
-          s3Health.status === "healthy" &&
-          redisHealth.status === "healthy" &&
-          llamaParseHealth.status === "healthy" &&
-          pipelineHealth.status === "healthy";
+        // In development, only require database and Redis
+        const overallHealthy = config.environment === "development"
+          ? dbHealth.status === "healthy" && redisHealth.status === "healthy"
+          : dbHealth.status === "healthy" &&
+            s3Health.status === "healthy" &&
+            redisHealth.status === "healthy" &&
+            llamaParseHealth.status === "healthy" &&
+            pipelineHealth.status === "healthy";
 
         ctx.response.status = overallHealthy ? 200 : 503;
         ctx.response.body = {
@@ -269,31 +325,9 @@ async function startServer() {
       logger.error(`Unhandled error: ${evt.error.message}`, evt.error);
     });
 
-    // Error handling middleware
-    app.use(async (ctx, next) => {
-      try {
-        await next();
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : "Unknown error";
-        logger.error(`Request error: ${errorMessage}`, error);
-
-        ctx.response.status = 500;
-        ctx.response.body = {
-          status: "error",
-          error: {
-            code: "INTERNAL_ERROR",
-            message: config.environment === "development"
-              ? errorMessage
-              : "An internal server error occurred",
-          },
-          meta: {
-            request_id: crypto.randomUUID(),
-            timestamp: new Date().toISOString(),
-            version: "v1",
-          },
-        };
-      }
-    });
+    // Enhanced error handling middleware
+    // TODO: Enable after fixing TypeScript issues
+    // app.use(errorHandlingMiddleware());
 
     // CORS middleware
     app.use(async (ctx, next) => {

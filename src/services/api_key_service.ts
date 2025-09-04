@@ -349,7 +349,9 @@ class ApiKeyService {
         name: row.name as string,
         description: row.description as string | undefined,
         environment: row.environment as "development" | "staging" | "production",
-        permissions: JSON.parse(row.permissions as string),
+        permissions: typeof row.permissions === "string" 
+        ? JSON.parse(row.permissions) 
+        : row.permissions as string[],
         rateLimitPerMinute: row.rate_limit_per_minute as number,
         rateLimitPerHour: row.rate_limit_per_hour as number,
         rateLimitPerDay: row.rate_limit_per_day as number,
@@ -460,7 +462,9 @@ class ApiKeyService {
       name: row.name as string,
       description: row.description as string | undefined,
       environment: row.environment as "development" | "staging" | "production",
-      permissions: JSON.parse(row.permissions as string),
+      permissions: typeof row.permissions === "string" 
+        ? JSON.parse(row.permissions) 
+        : row.permissions as string[],
       rateLimitPerMinute: row.rate_limit_per_minute as number,
       rateLimitPerHour: row.rate_limit_per_hour as number,
       rateLimitPerDay: row.rate_limit_per_day as number,

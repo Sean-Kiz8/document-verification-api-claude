@@ -371,7 +371,7 @@ class DocumentUploadService {
       data: {
         documentId: document.id,
         fileName: document.file_name,
-        fileSize: document.file_size,
+        fileSize: Number(document.file_size), // Ensure BigInt conversion
         documentType: document.document_type,
         processingStatus: document.processing_status,
         estimatedCompletionTime: queueEntry.estimatedCompletionTime.toISOString(),

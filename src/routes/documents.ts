@@ -133,7 +133,7 @@ router.post(
         file: fileEntry,
         fileName: fileEntry.name,
         mimeType: fileEntry.type,
-        fileSize: fileEntry.size,
+        fileSize: Number(fileEntry.size), // Convert BigInt to Number
         userId,
         transactionId,
         disputeId: disputeId || undefined,

@@ -49,22 +49,35 @@ export interface Config {
  * Load and validate environment configuration
  */
 export async function loadConfig(): Promise<Config> {
-  // Load environment variables with safe defaults
-  const env = await loadEnv({
-    allowEmptyValues: true,
-    export: false,
-  });
+  // Load environment variables from .env file if it exists, otherwise use process.env
+  let env: Record<string, string>;
+  
+  try {
+    env = await loadEnv({
+      allowEmptyValues: true,
+      export: false,
+    });
+    
+    // If .env file is empty or doesn't have key variables, use process.env
+    if (!env.DATABASE_URL && !env.S3_ACCESS_KEY_ID) {
+      env = Deno.env.toObject();
+    }
+  } catch {
+    // Fallback to process.env if .env file doesn't exist (Docker scenario)
+    env = Deno.env.toObject();
+  }
 
   return {
     // Server
     port: parseInt(env.API_PORT || "8000"),
     environment: (env.ENVIRONMENT || "development") as Config["environment"],
 
-    // Database
-    databaseUrl: env.DATABASE_URL || "postgresql://user:password@localhost:5432/docverify",
+    // Database (use different default for Docker)
+    databaseUrl: env.DATABASE_URL ||
+      "postgresql://postgres:postgres@postgres:5432/document_verification",
 
-    // Redis
-    redisUrl: env.REDIS_URL || "redis://localhost:6379",
+    // Redis (use different default for Docker)
+    redisUrl: env.REDIS_URL || "redis://redis:6379",
 
     // S3 Storage
     s3AccessKeyId: env.S3_ACCESS_KEY_ID || "",
@@ -102,16 +115,29 @@ export async function loadConfig(): Promise<Config> {
 export function validateConfig(config: Config): void {
   const requiredFields: Array<keyof Config> = [
     "databaseUrl",
-    "s3AccessKeyId",
-    "s3SecretAccessKey",
-    "s3Endpoint",
     "apiKeySecret",
   ];
+
+  // S3 is only required in production
+  if (config.environment === "production") {
+    requiredFields.push("s3AccessKeyId", "s3SecretAccessKey", "s3Endpoint");
+  }
 
   const missingFields = requiredFields.filter((field) => !config[field]);
 
   if (missingFields.length > 0) {
     throw new Error(`Missing required configuration: ${missingFields.join(", ")}`);
+  }
+
+  // Warn about missing S3 config in development
+  if (config.environment === "development") {
+    const s3Fields = ["s3AccessKeyId", "s3SecretAccessKey", "s3Endpoint"];
+    const missingS3 = s3Fields.filter((field) => !config[field as keyof Config]);
+
+    if (missingS3.length > 0) {
+      console.warn(`⚠️  S3 configuration missing in development: ${missingS3.join(", ")}`);
+      console.warn("   File upload features will be limited without S3 configuration");
+    }
   }
 
   // Validate file size limits
