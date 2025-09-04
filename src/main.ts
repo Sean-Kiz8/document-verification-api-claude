@@ -8,6 +8,7 @@ import { DocumentQueries } from "@database/queries.ts";
 import { storageService } from "@services/storage_service.ts";
 import { authMiddleware, skipAuth } from "@middleware/auth.ts";
 import { apiKeyRouter } from "@routes/api_keys.ts";
+import { documentsRouter } from "@routes/documents.ts";
 
 /**
  * Document Verification API
@@ -142,12 +143,16 @@ async function startServer() {
             failed: stats.by_status.failed,
           },
           endpoints: [
-            "GET /health - Health check with database and storage status",
+            "GET /health - Health check with database, storage, cache, and OCR status",
             "GET /api/v1 - API information and statistics",
             "POST /api/v1/upload-url - Generate signed upload URL",
-            "POST /api/v1/documents - Upload document (coming soon)",
-            "GET /api/v1/documents/:id/status - Check processing status (coming soon)",
-            "GET /api/v1/documents/:id/results - Get processing results (coming soon)",
+            "POST /api/v1/documents - Upload document for processing",
+            "GET /api/v1/documents/:id/status - Check document processing status (with caching)",
+            "GET /api/v1/queue/status - Get processing queue status",
+            "POST /api/v1/admin/api-keys - Create API key (admin only)",
+            "GET /api/v1/admin/api-keys - List API keys (admin only)",
+            "DELETE /api/v1/admin/api-keys/:id - Deactivate API key (admin only)",
+            "DELETE /api/v1/documents/:id/cache - Invalidate status cache",
           ],
         };
       } catch (error) {
@@ -320,6 +325,10 @@ async function startServer() {
     // Register API key management routes
     app.use(apiKeyRouter.routes());
     app.use(apiKeyRouter.allowedMethods());
+
+    // Register document routes
+    app.use(documentsRouter.routes());
+    app.use(documentsRouter.allowedMethods());
 
     // 404 handler
     app.use((ctx) => {

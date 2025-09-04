@@ -10,8 +10,8 @@ export interface UploadOptions {
   contentType: string;
   originalFileName: string;
   userId: string;
-  transactionId?: string;
-  disputeId?: string;
+  transactionId: string | undefined;
+  disputeId: string | undefined;
 }
 
 export interface StorageResult {
@@ -21,6 +21,7 @@ export interface StorageResult {
   downloadUrl?: string;
   etag?: string;
   size?: number;
+  bucket?: string;
 }
 
 export interface FileValidationResult {
@@ -190,11 +191,14 @@ class StorageService {
         size: fileData.length,
       });
 
+      const s3Config = s3.getConfig();
+
       return {
         key: result.key,
         url: result.url,
         ...(result.etag ? { etag: result.etag } : {}),
         size: fileData.length,
+        bucket: s3Config.bucket,
       };
     } catch (error) {
       this.logger.error("Document upload failed:", error, {

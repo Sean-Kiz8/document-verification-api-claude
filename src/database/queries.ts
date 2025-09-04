@@ -10,7 +10,7 @@ import { v4 as generateUuid } from "@/deps.ts";
 export interface Document {
   id: string;
   transaction_id: string;
-  dispute_id?: string;
+  dispute_id: string | undefined;
   user_id: string;
   file_name: string;
   file_size: number;
@@ -20,12 +20,12 @@ export interface Document {
   s3_bucket: string;
   upload_timestamp: Date;
   processing_status: "queued" | "processing" | "completed" | "failed" | "cancelled";
-  started_processing_at?: Date;
-  completed_processing_at?: Date;
-  extracted_data?: any;
-  comparison_results?: any;
-  authenticity_score?: number;
-  authenticity_details?: any;
+  started_processing_at: Date | undefined;
+  completed_processing_at: Date | undefined;
+  extracted_data: any | undefined;
+  comparison_results: any | undefined;
+  authenticity_score: number | undefined;
+  authenticity_details: any | undefined;
   created_at: Date;
   updated_at: Date;
 }
