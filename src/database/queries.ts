@@ -36,12 +36,12 @@ export interface ProcessingLog {
   stage: string;
   status: string;
   started_at: Date;
-  completed_at?: Date;
-  duration_ms?: number;
+  completed_at: Date | undefined;
+  duration_ms: number | undefined;
   log_level: "DEBUG" | "INFO" | "WARN" | "ERROR";
-  message?: string;
-  error_details?: any;
-  metadata?: any;
+  message: string | undefined;
+  error_details: any | undefined;
+  metadata: any | undefined;
 }
 
 export interface ApiKey {

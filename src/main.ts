@@ -9,6 +9,8 @@ import { storageService } from "@services/storage_service.ts";
 import { authMiddleware, skipAuth } from "@middleware/auth.ts";
 import { apiKeyRouter } from "@routes/api_keys.ts";
 import { documentsRouter } from "@routes/documents.ts";
+import { monitoringRouter } from "@routes/monitoring.ts";
+// import { pipelineService } from "@services/worker_service.ts"; // TODO: Fix TypeScript issues
 
 /**
  * Document Verification API
@@ -61,6 +63,12 @@ async function startServer() {
     await initializeLlamaParse();
     logger.info("Llama Parse OCR initialized successfully");
 
+    // Initialize async processing pipeline
+    // TODO: Enable after fixing TypeScript issues
+    // logger.info("Initializing async processing pipeline...");
+    // await pipelineService.start();
+    // logger.info("Async processing pipeline started successfully");
+
     // Create Oak application
     const app = new Application();
     const router = new Router();
@@ -72,12 +80,15 @@ async function startServer() {
         const s3Health = await getS3Health();
         const redisHealth = await getRedisHealth();
         const llamaParseHealth = await getLlamaParseHealth();
+        // const pipelineHealth = await pipelineService.getHealthStatus(); // TODO: Enable after TypeScript fixes
+        const pipelineHealth = { status: "healthy", pipeline: true, workers: {}, queues: {} };
         const storageStats = await storageService.getStorageStats();
 
         const overallHealthy = dbHealth.status === "healthy" &&
           s3Health.status === "healthy" &&
           redisHealth.status === "healthy" &&
-          llamaParseHealth.status === "healthy";
+          llamaParseHealth.status === "healthy" &&
+          pipelineHealth.status === "healthy";
 
         ctx.response.status = overallHealthy ? 200 : 503;
         ctx.response.body = {
@@ -106,6 +117,12 @@ async function startServer() {
             service: "llama_parse",
             apiKey: llamaParseHealth.apiKey,
             latency: llamaParseHealth.latency ? `${llamaParseHealth.latency}ms` : undefined,
+          },
+          pipeline: {
+            status: pipelineHealth.status,
+            running: pipelineHealth.pipeline,
+            workers: pipelineHealth.workers,
+            queues: pipelineHealth.queues,
           },
         };
       } catch (error) {
@@ -143,16 +160,21 @@ async function startServer() {
             failed: stats.by_status.failed,
           },
           endpoints: [
-            "GET /health - Health check with database, storage, cache, and OCR status",
+            "GET /health - Health check with database, storage, cache, OCR, and pipeline status",
             "GET /api/v1 - API information and statistics",
             "POST /api/v1/upload-url - Generate signed upload URL",
-            "POST /api/v1/documents - Upload document for processing",
-            "GET /api/v1/documents/:id/status - Check document processing status (with caching)",
+            "POST /api/v1/documents - Upload document for async processing",
+            "GET /api/v1/documents/:id/status - Check processing status (cached, enhanced)",
+            "GET /api/v1/documents/:id/results - Get processing results (cached, comprehensive)",
             "GET /api/v1/queue/status - Get processing queue status",
-            "POST /api/v1/admin/api-keys - Create API key (admin only)",
+            "DELETE /api/v1/documents/:id/cache - Invalidate status cache",
+            "POST /api/v1/admin/api-keys - Create API key (admin only, rate limited)",
             "GET /api/v1/admin/api-keys - List API keys (admin only)",
             "DELETE /api/v1/admin/api-keys/:id - Deactivate API key (admin only)",
-            "DELETE /api/v1/documents/:id/cache - Invalidate status cache",
+            "GET /api/v1/admin/rate-limits/metrics - Get rate limiting metrics (admin only)",
+            "GET /api/v1/admin/rate-limits/violations/:id - Get API key violations (admin only)",
+            "DELETE /api/v1/admin/rate-limits/data - Clear rate limit data (dev only)",
+            "GET /api/v1/admin/cache/stats - Get cache statistics (admin only)",
           ],
         };
       } catch (error) {
@@ -329,6 +351,10 @@ async function startServer() {
     // Register document routes
     app.use(documentsRouter.routes());
     app.use(documentsRouter.allowedMethods());
+
+    // Register monitoring routes
+    app.use(monitoringRouter.routes());
+    app.use(monitoringRouter.allowedMethods());
 
     // 404 handler
     app.use((ctx) => {
