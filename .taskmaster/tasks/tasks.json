@@ -1,0 +1,592 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Setup Deno Project with TypeScript Foundation",
+        "description": "Initialize Deno project with native TypeScript support, configure project structure, and setup development environment",
+        "details": "Create project directory structure with src/, tests/, docs/ folders. Initialize deno.json with TypeScript configuration, import maps, and task definitions. Setup .env files for different environments (dev, staging, prod). Configure VS Code settings for Deno development. Install and configure essential Deno modules: oak for HTTP server, std/dotenv for environment variables, std/testing for unit tests.",
+        "testStrategy": "Verify Deno installation, test TypeScript compilation, run basic HTTP server test, validate environment variable loading",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 2,
+        "title": "Setup PostgreSQL Database Schema",
+        "description": "Create PostgreSQL database schema with documents and processing_logs tables, indexes, and constraints",
+        "details": "Create PostgreSQL database with proper user permissions. Implement documents table with UUID primary key, transaction_id, dispute_id, user_id, file metadata fields, processing_status enum, JSONB fields for extracted_data and comparison_results. Create processing_logs table with foreign key to documents. Add performance indexes on transaction_id, user_id, processing_status. Setup database connection pool using Deno postgres driver. Create migration scripts for schema versioning.",
+        "testStrategy": "Test database connection, validate table creation, test CRUD operations, verify index performance, test JSONB field operations",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 3,
+        "title": "Implement API Key Authentication Middleware",
+        "description": "Create simple API key authentication system with Bearer token validation",
+        "details": "Implement authentication middleware for Oak framework. Create API key validation logic with format 'dv_[environment]_[32_char_key]'. Setup API key storage in PostgreSQL with permissions, rate limits, and expiration. Implement Bearer token extraction from Authorization header. Add rate limiting per API key with Redis backend. Create middleware to inject authenticated user context into requests. Handle authentication errors with proper HTTP status codes (401, 403).",
+        "testStrategy": "Test valid API key authentication, test invalid key rejection, verify rate limiting functionality, test authorization header parsing",
+        "priority": "high",
+        "dependencies": [
+          1,
+          2
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 4,
+        "title": "Setup Cloudflare S3 Storage Integration",
+        "description": "Implement secure document storage using Cloudflare S3 with encryption and signed URLs",
+        "details": "Configure Cloudflare R2 storage client using AWS S3 compatible API. Implement SSE-KMS encryption for stored documents. Create signed URL generation for uploads (15 min expiry) and downloads (24 hour expiry). Setup bucket lifecycle policies for automatic archival and deletion. Implement file validation (MIME types: PNG, JPEG, PDF, max 10MB). Create S3 key naming convention with UUID and timestamp. Add error handling for upload failures and retry logic.",
+        "testStrategy": "Test file upload with signed URLs, verify encryption at rest, test download URL generation, validate file size and type restrictions",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 5,
+        "title": "Setup Redis Caching Layer",
+        "description": "Configure Redis for session management, caching, and rate limiting",
+        "details": "Setup Redis connection with cluster support. Implement caching strategy with TTL settings: document_status (5 min), extracted_data (1 hour), authenticity_results (2 hours), transaction_data (30 min). Create cache helper functions for read-through, write-through, and cache-aside patterns. Implement rate limiting storage in Redis with sliding window algorithm. Setup Redis key naming conventions and expiration policies. Add Redis health checks and connection retry logic.",
+        "testStrategy": "Test Redis connection, verify caching operations, test TTL expiration, validate rate limiting counters, test connection failover",
+        "priority": "medium",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 6,
+        "title": "Implement Document Upload API Endpoint",
+        "description": "Create POST /api/v1/documents endpoint for document upload and processing initiation",
+        "details": "Implement multipart/form-data handling for file uploads. Add request validation for file type, size, transaction_id format, and metadata. Generate UUID for document_id and create database record. Upload file to S3 with signed URL. Queue document for processing with initial status 'queued'. Return response with document_id, upload_url, processing_status, and estimated_completion time. Implement proper error handling for validation failures, S3 upload errors, and database issues. Add request logging with sanitized sensitive data.",
+        "testStrategy": "Test valid document upload, verify file validation rules, test S3 upload integration, validate database record creation, test error scenarios",
+        "priority": "high",
+        "dependencies": [
+          2,
+          3,
+          4,
+          5
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 7,
+        "title": "Implement Document Status API Endpoint",
+        "description": "Create GET /api/v1/documents/{document_id}/status endpoint for processing status checks",
+        "details": "Implement status endpoint with document_id parameter validation. Query database for current processing status and stage information. Return processing_status, current_stage, progress_percentage, stages_completed array, and estimated_completion. Implement caching for status responses (5 min TTL). Add proper error handling for document not found (404) and access control. Include processing logs and stage timestamps in response. Optimize database queries with proper indexing.",
+        "testStrategy": "Test status retrieval for valid document_id, verify caching behavior, test 404 for invalid IDs, validate response format and data accuracy",
+        "priority": "high",
+        "dependencies": [
+          2,
+          3,
+          5
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 8,
+        "title": "Integrate Llama Parse OCR Service",
+        "description": "Implement OCR text extraction using Llama Parse API with Russian language support",
+        "details": "Setup Llama Parse API client with authentication and timeout configuration (15s). Implement document processing pipeline stage for OCR extraction. Support PDF, PNG, JPG, JPEG formats with language support for English and Russian. Extract payment document fields: amounts, currencies, dates, recipient info, transaction IDs. Store extracted data in JSONB format with confidence scores. Implement retry logic (2 attempts) and error handling for OCR failures. Add fallback mechanism for unsupported formats.",
+        "testStrategy": "Test OCR extraction with sample payment documents, verify Russian text extraction, test error handling and retries, validate extracted data format",
+        "priority": "high",
+        "dependencies": [
+          1,
+          2
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Setup Llama Parse API Client with Authentication",
+            "description": "Configure Llama Parse API client with proper authentication, timeout settings, and connection handling",
+            "dependencies": [],
+            "details": "Initialize Llama Parse API client with API key authentication. Configure 15-second timeout for API requests. Setup proper error handling for connection failures and implement client singleton pattern for efficient resource usage.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Implement Document Format Handler",
+            "description": "Create document format detection and processing logic for supported file types",
+            "dependencies": [
+              "8.1"
+            ],
+            "details": "Implement support for PDF, PNG, JPG, and JPEG file formats. Add file type detection and validation. Create format-specific preprocessing logic to optimize documents for OCR processing.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Configure Russian Language Support",
+            "description": "Setup multi-language OCR processing with specific Russian language configuration",
+            "dependencies": [
+              "8.1"
+            ],
+            "details": "Configure Llama Parse API for Russian language text extraction alongside English. Setup language detection logic and optimize OCR parameters for Cyrillic text processing.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Implement Payment Document Field Extraction Logic",
+            "description": "Create intelligent field extraction for payment document specific data points",
+            "dependencies": [
+              "8.2",
+              "8.3"
+            ],
+            "details": "Implement extraction logic for amounts, currencies, dates, recipient information, and transaction IDs. Create pattern matching and validation for different payment document formats and layouts.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Implement Confidence Scoring System",
+            "description": "Create confidence scoring mechanism for extracted OCR data quality assessment",
+            "dependencies": [
+              "8.4"
+            ],
+            "details": "Implement confidence scoring algorithm based on text clarity, field completeness, and pattern matching accuracy. Store confidence scores (0-1) with extracted data in JSONB format for quality assessment.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 6,
+            "title": "Create Error Handling and Retry Mechanisms",
+            "description": "Implement robust error handling with automatic retry logic for OCR failures",
+            "dependencies": [
+              "8.1"
+            ],
+            "details": "Implement 2-attempt retry logic for API failures. Create comprehensive error handling for timeout, authentication, and processing errors. Add detailed error logging and user-friendly error responses.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 7,
+            "title": "Develop Fallback System for Unsupported Formats",
+            "description": "Create fallback mechanisms and graceful degradation for unsupported document formats",
+            "dependencies": [
+              "8.2",
+              "8.6"
+            ],
+            "details": "Implement fallback system for unsupported file formats or OCR processing failures. Create alternative processing strategies and ensure graceful degradation with appropriate user notifications.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "title": "Implement Database Comparison Logic",
+        "description": "Create transaction data comparison between extracted OCR data and database records",
+        "details": "Implement comparison engine to match extracted document data with transaction database records. Compare fields: amounts, dates, recipient names, transaction IDs with fuzzy matching for text fields. Calculate field-level confidence scores and overall match percentage. Identify discrepancies with severity levels (low, medium, high). Store comparison results in JSONB format. Implement transaction lookup by transaction_id with proper error handling for not found cases. Add logging for comparison results and performance metrics.",
+        "testStrategy": "Test exact matches, verify fuzzy matching algorithms, test discrepancy detection, validate confidence scoring, test transaction not found scenarios",
+        "priority": "high",
+        "dependencies": [
+          2,
+          8
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 10,
+        "title": "Implement Async Processing Pipeline",
+        "description": "Create asynchronous document processing pipeline with queue management",
+        "details": "Setup processing pipeline with stages: document_validation, s3_upload, ocr_extraction, data_comparison, ai_verification. Implement queue system using Redis with priority levels and retry mechanisms. Create worker processes for each stage with timeout handling and error recovery. Update document processing status and progress in real-time. Implement dead letter queue for failed processing. Add processing logs with stage timing and error details. Setup pipeline monitoring and health checks.",
+        "testStrategy": "Test end-to-end processing pipeline, verify stage transitions, test error handling and retries, validate processing logs and status updates",
+        "priority": "high",
+        "dependencies": [
+          5,
+          8,
+          9
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Design Redis Queue System Architecture",
+            "description": "Design and implement the core Redis-based queue system with priority levels and message structure",
+            "dependencies": [],
+            "details": "Setup Redis connection and configuration. Design queue data structures for different priority levels (high, medium, low). Implement queue operations: enqueue, dequeue, peek. Define message format with metadata (document_id, stage, priority, timestamp, retry_count). Setup Redis key naming conventions and TTL policies. Configure Redis persistence and memory optimization settings.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Implement Processing Stage Definitions",
+            "description": "Define and implement the five processing stages with their specific logic and interfaces",
+            "dependencies": [
+              "10.1"
+            ],
+            "details": "Implement document_validation stage with file type and size checks. Create s3_upload stage with AWS SDK integration. Build ocr_extraction stage with OCR service integration. Implement data_comparison stage interface. Create ai_verification stage with AI service calls. Define stage input/output contracts and error handling interfaces. Setup stage configuration and timeout settings.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Create Worker Process Framework",
+            "description": "Build the worker process framework that can handle any processing stage",
+            "dependencies": [
+              "10.1",
+              "10.2"
+            ],
+            "details": "Create base worker class with stage execution logic. Implement worker lifecycle management (start, stop, graceful shutdown). Add worker pool management with configurable concurrency. Implement stage-specific worker instantiation. Add worker health monitoring and heartbeat mechanism. Setup worker process isolation and resource management. Implement worker scaling based on queue depth.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Implement Retry Logic and Error Handling",
+            "description": "Build comprehensive retry mechanisms and error handling for failed processing",
+            "dependencies": [
+              "10.2",
+              "10.3"
+            ],
+            "details": "Implement exponential backoff retry strategy with configurable max attempts. Create error classification system (transient vs permanent errors). Add retry queue management with delay scheduling. Implement timeout handling for long-running processes. Create error context preservation across retries. Setup retry limit enforcement and failure escalation. Add retry metrics and logging.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Build Real-time Status Tracking System",
+            "description": "Create system to track and update document processing status and progress in real-time",
+            "dependencies": [
+              "10.2"
+            ],
+            "details": "Design status tracking data model with stage progress. Implement status update mechanisms for each processing stage. Create progress calculation logic based on stage completion. Add real-time status broadcasting using WebSockets or Server-Sent Events. Implement status persistence in database with timestamps. Create status query APIs for frontend integration. Add status change event logging.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 6,
+            "title": "Setup Dead Letter Queue System",
+            "description": "Implement dead letter queue for handling permanently failed processing jobs",
+            "dependencies": [
+              "10.1",
+              "10.4"
+            ],
+            "details": "Create dead letter queue structure in Redis. Implement automatic message routing to DLQ after max retries. Add DLQ message inspection and analysis tools. Create manual retry mechanism from DLQ. Implement DLQ cleanup and archival policies. Add DLQ monitoring and alerting. Create DLQ statistics and reporting dashboard.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 7,
+            "title": "Implement Processing Logs and Timing",
+            "description": "Create comprehensive logging system with stage timing and error details",
+            "dependencies": [
+              "10.2",
+              "10.4"
+            ],
+            "details": "Design structured logging format for processing events. Implement stage timing measurement and logging. Add error detail logging with stack traces and context. Create log aggregation and correlation by document_id. Implement log level configuration and filtering. Add log rotation and retention policies. Setup log search and analysis capabilities.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 8,
+            "title": "Setup Pipeline Monitoring and Health Checks",
+            "description": "Implement monitoring system and health checks for the processing pipeline",
+            "dependencies": [
+              "10.3",
+              "10.5",
+              "10.6"
+            ],
+            "details": "Create pipeline health check endpoints for each component. Implement queue depth monitoring and alerting. Add worker process health monitoring. Create processing time metrics and SLA tracking. Implement error rate monitoring and alerting. Setup dashboard for pipeline visualization. Add automated health check scheduling and reporting.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 9,
+            "title": "Optimize Pipeline Performance",
+            "description": "Implement performance optimizations for throughput and resource efficiency",
+            "dependencies": [
+              "10.3",
+              "10.7",
+              "10.8"
+            ],
+            "details": "Analyze and optimize queue operations performance. Implement connection pooling for Redis and database. Add batch processing capabilities for similar operations. Optimize worker resource usage and memory management. Implement intelligent queue prioritization algorithms. Add performance profiling and bottleneck identification. Create auto-scaling mechanisms based on load.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 10,
+            "title": "Conduct End-to-End Pipeline Testing",
+            "description": "Perform comprehensive testing of the entire async processing pipeline",
+            "dependencies": [
+              "10.4",
+              "10.5",
+              "10.6",
+              "10.7",
+              "10.8",
+              "10.9"
+            ],
+            "details": "Create end-to-end test scenarios covering all processing stages. Test pipeline under various load conditions and failure scenarios. Verify retry logic and error handling across all stages. Test dead letter queue functionality and recovery. Validate status tracking accuracy and real-time updates. Test monitoring and alerting systems. Perform stress testing and capacity planning validation.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 11,
+        "title": "Implement Document Results API Endpoint",
+        "description": "Create GET /api/v1/documents/{document_id}/results endpoint for retrieving processing results",
+        "details": "Implement results endpoint returning complete processing results including extracted_data, comparison_results, authenticity_score, and processing_logs. Add caching for completed results (1 hour TTL). Generate signed S3 URLs for document access with 24-hour expiry. Include detailed field comparisons, discrepancies, and confidence scores. Implement proper error handling for incomplete processing and access control. Add response compression for large result sets. Format response according to API specification with proper metadata.",
+        "testStrategy": "Test results retrieval for completed documents, verify caching behavior, test S3 URL generation, validate response format and completeness",
+        "priority": "high",
+        "dependencies": [
+          2,
+          3,
+          4,
+          5,
+          10
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 12,
+        "title": "Implement Rate Limiting System",
+        "description": "Create comprehensive rate limiting with per-client limits and abuse protection",
+        "details": "Implement sliding window rate limiting using Redis. Setup limits: 10 uploads/minute, 100 uploads/hour, 60 status checks/minute. Create rate limit middleware with proper HTTP headers (X-RateLimit-Remaining, X-RateLimit-Reset). Implement abuse detection with automatic cool-down periods. Add rate limit bypass for premium API keys. Store rate limit counters in Redis with automatic expiration. Return 429 status code with retry-after header when limits exceeded. Add rate limit monitoring and alerting.",
+        "testStrategy": "Test rate limit enforcement, verify sliding window algorithm, test abuse detection, validate HTTP headers, test premium bypass functionality",
+        "priority": "medium",
+        "dependencies": [
+          3,
+          5
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 13,
+        "title": "Implement Error Handling and Logging System",
+        "description": "Create comprehensive error handling with structured logging and error catalog",
+        "details": "Implement centralized error handling middleware with proper HTTP status codes. Create error catalog with specific error codes (E1001-E3002) and user-friendly messages. Setup structured JSON logging with request_id, user_id, document_id tracking. Implement sensitive data masking for credit cards, bank accounts, SSN. Add error recovery mechanisms and fallback behaviors. Create error response format with trace_id and suggestions. Setup log aggregation and monitoring alerts for critical errors.",
+        "testStrategy": "Test error response formats, verify error code mapping, test sensitive data masking, validate logging structure and searchability",
+        "priority": "medium",
+        "dependencies": [
+          1,
+          3
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 14,
+        "title": "Integrate OpenAI for Document Authenticity Verification",
+        "description": "Implement AI-powered document authenticity analysis using OpenAI GPT-4 Vision",
+        "details": "Setup OpenAI API client with GPT-4-vision-preview model. Implement authenticity analysis prompt focusing on text consistency, image quality, alignment irregularities, and suspicious modifications. Process document images through AI analysis with confidence scoring (0-1). Make AI verification optional with fallback behavior when service unavailable. Implement timeout handling (90s) and retry logic. Store authenticity results with detailed analysis notes. Add cost tracking and usage monitoring for OpenAI API calls.",
+        "testStrategy": "Test AI authenticity analysis with sample documents, verify confidence scoring, test fallback behavior, validate cost tracking and API usage limits",
+        "priority": "medium",
+        "dependencies": [
+          1,
+          2,
+          10
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 15,
+        "title": "Implement Batch Document Upload API",
+        "description": "Create POST /api/v1/documents/batch endpoint for multiple document processing",
+        "details": "Implement batch upload endpoint accepting multiple files in single request. Add batch metadata validation and individual file validation. Create batch processing queue with priority handling. Generate batch_id for tracking multiple document processing. Implement batch status endpoint for monitoring overall progress. Add batch result aggregation and reporting. Handle partial failures with detailed error reporting per document. Implement batch size limits and processing optimization.",
+        "testStrategy": "Test batch upload with multiple files, verify individual document processing, test partial failure handling, validate batch status tracking",
+        "priority": "low",
+        "dependencies": [
+          6,
+          10
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Multipart Request Handling",
+            "description": "Create multipart/form-data parser for handling multiple file uploads in single request",
+            "dependencies": [],
+            "details": "Implement multipart request parser to handle multiple files with metadata. Add file size validation per file and total batch size limits. Parse form fields for batch metadata and individual file parameters. Implement streaming upload handling to manage memory efficiently. Add proper error handling for malformed multipart requests and unsupported file types.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Implement Batch Validation Logic",
+            "description": "Create comprehensive validation for batch metadata and individual files",
+            "dependencies": [
+              "15.1"
+            ],
+            "details": "Implement batch-level validation: maximum file count, total size limits, allowed file types. Add individual file validation: file format, size, content type verification. Create batch metadata validation for required fields and data types. Implement duplicate file detection within batch. Add validation error aggregation with detailed per-file error reporting.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Integrate with Processing Queue System",
+            "description": "Connect batch upload to existing document processing queue with priority handling",
+            "dependencies": [
+              "15.2"
+            ],
+            "details": "Integrate with existing queue system to handle batch processing. Implement priority-based queue insertion for batch jobs. Create batch job splitting to queue individual documents with batch context. Add queue monitoring for batch processing status. Implement retry logic for failed batch items with exponential backoff.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Implement Batch Tracking System",
+            "description": "Create batch_id generation and tracking infrastructure for monitoring batch progress",
+            "dependencies": [
+              "15.3"
+            ],
+            "details": "Generate unique batch_id using UUID for each batch upload. Create batch tracking database schema with status, progress, and metadata fields. Implement batch status updates from individual document processing results. Add batch progress calculation based on completed/total documents. Store batch creation timestamp and completion estimates.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Create Batch Status Endpoint",
+            "description": "Implement GET /api/v1/documents/batch/{batch_id}/status endpoint for progress monitoring",
+            "dependencies": [
+              "15.4"
+            ],
+            "details": "Create batch status endpoint returning overall progress, individual document statuses, and completion estimates. Implement real-time status aggregation from database and queue. Add detailed response with per-document status, error messages, and processing timestamps. Include batch metadata and summary statistics in response.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 6,
+            "title": "Implement Partial Failure Handling",
+            "description": "Create robust error handling for partial batch failures with detailed reporting",
+            "dependencies": [
+              "15.5"
+            ],
+            "details": "Implement partial failure handling where some documents succeed while others fail. Create detailed error reporting per document with specific failure reasons. Add batch completion logic that handles mixed success/failure scenarios. Implement error categorization (validation, processing, system errors). Store detailed error logs with document-specific context.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 7,
+            "title": "Optimize Batch Processing Performance",
+            "description": "Implement performance optimizations for large batch processing",
+            "dependencies": [
+              "15.6"
+            ],
+            "details": "Implement parallel processing for batch documents within resource limits. Add memory optimization for large file handling with streaming. Create batch size optimization based on system resources and queue capacity. Implement connection pooling and database query optimization for batch operations. Add performance monitoring and metrics collection.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 8,
+            "title": "Create Comprehensive Testing Suite",
+            "description": "Develop extensive test scenarios covering all batch upload functionality",
+            "dependencies": [
+              "15.7"
+            ],
+            "details": "Create unit tests for multipart parsing, validation logic, and error handling. Implement integration tests for queue integration and status tracking. Add load testing for large batch scenarios and concurrent uploads. Create test scenarios for partial failures, network interruptions, and edge cases. Implement end-to-end testing with real file uploads and processing verification.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 16,
+        "title": "Implement Document History API",
+        "description": "Create GET /api/v1/documents endpoint with filtering and pagination",
+        "details": "Implement document history endpoint with query parameters: user_id, status, date_range, limit, offset. Add database query optimization with proper indexing and pagination. Implement filtering by processing status, document type, and date ranges. Add sorting options by upload date, processing completion, and status. Include summary statistics in response metadata. Implement caching for frequently accessed history queries. Add proper access control to ensure users only see their documents.",
+        "testStrategy": "Test pagination and filtering, verify query performance, test access control, validate response format and metadata",
+        "priority": "low",
+        "dependencies": [
+          2,
+          3,
+          5
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 17,
+        "title": "Generate OpenAPI 3.1 Documentation",
+        "description": "Create comprehensive API documentation with OpenAPI specification and examples",
+        "details": "Generate OpenAPI 3.1 specification with complete endpoint documentation. Include request/response schemas, authentication requirements, error codes, and examples. Add detailed descriptions for all parameters and response fields. Create interactive API documentation with Swagger UI. Include SDK generation configuration for TypeScript, Python, Java, C#, Go. Add authentication examples, error handling patterns, and async processing guides. Setup automatic documentation updates with code changes.",
+        "testStrategy": "Validate OpenAPI specification syntax, test interactive documentation, verify example requests/responses, test SDK generation",
+        "priority": "medium",
+        "dependencies": [
+          6,
+          7,
+          11,
+          15,
+          16
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 18,
+        "title": "Setup Monitoring and Health Checks",
+        "description": "Implement comprehensive monitoring, metrics collection, and health check endpoints",
+        "details": "Create health check endpoints for API, database, Redis, S3, and external services. Implement metrics collection for application performance, infrastructure health, and business KPIs. Setup structured logging with correlation IDs and performance tracking. Create monitoring dashboards for API response times, error rates, processing throughput. Implement alerting for critical failures and performance degradation. Add uptime monitoring and SLA tracking. Setup log aggregation and search capabilities.",
+        "testStrategy": "Test health check endpoints, verify metrics collection, test alerting mechanisms, validate dashboard functionality",
+        "priority": "medium",
+        "dependencies": [
+          1,
+          2,
+          4,
+          5,
+          13
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 19,
+        "title": "Implement Security Hardening",
+        "description": "Apply comprehensive security measures including headers, validation, and encryption",
+        "details": "Implement security headers: HSTS, CSP, X-Content-Type-Options, X-Frame-Options, X-XSS-Protection. Add input validation and sanitization for all endpoints. Implement SQL injection prevention with parameterized queries. Setup request/response encryption with TLS 1.3. Add malware scanning for uploaded files. Implement CORS policies and origin validation. Setup security audit logging and intrusion detection. Add API key rotation mechanisms and secure storage.",
+        "testStrategy": "Test security headers, verify input validation, test SQL injection prevention, validate encryption implementation, test malware detection",
+        "priority": "high",
+        "dependencies": [
+          1,
+          3,
+          6,
+          13
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 20,
+        "title": "Performance Optimization and Load Testing",
+        "description": "Optimize API performance and conduct comprehensive load testing",
+        "details": "Optimize database queries with proper indexing and query analysis. Implement connection pooling for database and Redis. Add response compression and caching strategies. Optimize file upload/download performance with streaming. Conduct load testing with target: 500 requests/second, 100 concurrent uploads. Implement auto-scaling configuration with CPU/memory thresholds. Add performance monitoring and bottleneck identification. Optimize memory usage and garbage collection. Setup CDN for static assets and documentation.",
+        "testStrategy": "Conduct load testing scenarios, measure response times under load, verify auto-scaling behavior, test performance optimizations",
+        "priority": "medium",
+        "dependencies": [
+          2,
+          4,
+          5,
+          10,
+          18
+        ],
+        "status": "pending",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "created": "2025-09-04T04:49:55.198Z",
+      "updated": "2025-09-04T06:17:32.432Z",
+      "description": "Tasks for master context"
+    }
+  }
+}

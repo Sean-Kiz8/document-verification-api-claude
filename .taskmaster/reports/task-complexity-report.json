@@ -1,0 +1,173 @@
+{
+	"meta": {
+		"generatedAt": "2025-09-04T04:53:13.095Z",
+		"tasksAnalyzed": 20,
+		"totalTasks": 20,
+		"analysisCount": 20,
+		"thresholdScore": 5,
+		"projectName": "Taskmaster",
+		"usedResearch": false
+	},
+	"complexityAnalysis": [
+		{
+			"taskId": 1,
+			"taskTitle": "Setup Deno Project with TypeScript Foundation",
+			"complexityScore": 4,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Break down the Deno project initialization into specific configuration steps: directory structure creation, deno.json configuration, environment setup, VS Code configuration, module installation, and basic testing setup.",
+			"reasoning": "Moderate complexity involving multiple configuration files and environment setup. Well-defined scope with clear deliverables makes it suitable for 6 focused subtasks."
+		},
+		{
+			"taskId": 17,
+			"taskTitle": "Generate OpenAPI 3.1 Documentation",
+			"complexityScore": 6,
+			"recommendedSubtasks": 8,
+			"expansionPrompt": "Divide the OpenAPI documentation generation into: specification creation, schema definitions, endpoint documentation, authentication documentation, example generation, Swagger UI setup, SDK configuration, and automated update mechanisms.",
+			"reasoning": "High complexity due to comprehensive documentation requirements, multiple output formats, and integration with existing endpoints. Requires detailed technical writing and tooling setup."
+		},
+		{
+			"taskId": 10,
+			"taskTitle": "Implement Async Processing Pipeline",
+			"complexityScore": 9,
+			"recommendedSubtasks": 10,
+			"expansionPrompt": "Break down the async pipeline into: queue system design, stage definition and implementation, worker process creation, error handling and retry logic, status tracking, dead letter queue setup, monitoring integration, performance optimization, and end-to-end testing.",
+			"reasoning": "Very high complexity involving distributed systems concepts, error handling, monitoring, and multiple integration points. Critical system component requiring robust architecture."
+		},
+		{
+			"taskId": 15,
+			"taskTitle": "Implement Batch Document Upload API",
+			"complexityScore": 7,
+			"recommendedSubtasks": 8,
+			"expansionPrompt": "Divide batch upload implementation into: multipart request handling, batch validation logic, queue integration, batch tracking system, status aggregation, partial failure handling, performance optimization, and comprehensive testing scenarios.",
+			"reasoning": "High complexity due to handling multiple files, complex error scenarios, and integration with existing pipeline. Requires careful design for scalability and error handling."
+		},
+		{
+			"taskId": 12,
+			"taskTitle": "Implement Rate Limiting System",
+			"complexityScore": 6,
+			"recommendedSubtasks": 7,
+			"expansionPrompt": "Break down rate limiting into: sliding window algorithm implementation, Redis integration, middleware creation, HTTP header handling, abuse detection logic, premium bypass functionality, and monitoring/alerting setup.",
+			"reasoning": "Moderate to high complexity involving algorithms, Redis operations, and middleware integration. Requires careful consideration of performance and accuracy."
+		},
+		{
+			"taskId": 4,
+			"taskTitle": "Setup Cloudflare S3 Storage Integration",
+			"complexityScore": 5,
+			"recommendedSubtasks": 7,
+			"expansionPrompt": "Divide S3 integration into: client configuration, encryption setup, signed URL generation, lifecycle policy configuration, file validation implementation, naming convention setup, and error handling with retry logic.",
+			"reasoning": "Moderate complexity involving cloud service integration, security considerations, and multiple configuration aspects. Well-defined scope with clear technical requirements."
+		},
+		{
+			"taskId": 8,
+			"taskTitle": "Integrate Llama Parse OCR Service",
+			"complexityScore": 6,
+			"recommendedSubtasks": 7,
+			"expansionPrompt": "Break down OCR integration into: API client setup, document format handling, Russian language configuration, field extraction logic, confidence scoring implementation, error handling and retry mechanisms, and fallback system creation.",
+			"reasoning": "Moderate to high complexity due to external API integration, multi-language support, and complex data extraction requirements. Requires robust error handling."
+		},
+		{
+			"taskId": 20,
+			"taskTitle": "Performance Optimization and Load Testing",
+			"complexityScore": 8,
+			"recommendedSubtasks": 9,
+			"expansionPrompt": "Divide performance optimization into: database query optimization, connection pooling setup, caching strategy implementation, file streaming optimization, load testing framework setup, auto-scaling configuration, monitoring integration, memory optimization, and CDN setup.",
+			"reasoning": "High complexity involving multiple system components, performance analysis, and load testing. Requires deep technical knowledge and comprehensive testing approach."
+		},
+		{
+			"taskId": 19,
+			"taskTitle": "Implement Security Hardening",
+			"complexityScore": 7,
+			"recommendedSubtasks": 9,
+			"expansionPrompt": "Break down security hardening into: security headers implementation, input validation and sanitization, SQL injection prevention, TLS configuration, malware scanning setup, CORS policy implementation, audit logging, intrusion detection, and API key security measures.",
+			"reasoning": "High complexity due to comprehensive security requirements across multiple attack vectors. Critical for production readiness and requires expertise in security best practices."
+		},
+		{
+			"taskId": 18,
+			"taskTitle": "Setup Monitoring and Health Checks",
+			"complexityScore": 6,
+			"recommendedSubtasks": 8,
+			"expansionPrompt": "Divide monitoring setup into: health check endpoint creation, metrics collection implementation, structured logging setup, dashboard creation, alerting configuration, uptime monitoring, SLA tracking, and log aggregation system setup.",
+			"reasoning": "Moderate to high complexity involving multiple monitoring tools and integration points. Essential for production operations and requires comprehensive coverage of system components."
+		},
+		{
+			"taskId": 2,
+			"taskTitle": "Setup PostgreSQL Database Schema",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on setup postgresql database schema.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		},
+		{
+			"taskId": 3,
+			"taskTitle": "Implement API Key Authentication Middleware",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on implement api key authentication middleware.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		},
+		{
+			"taskId": 5,
+			"taskTitle": "Setup Redis Caching Layer",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on setup redis caching layer.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		},
+		{
+			"taskId": 6,
+			"taskTitle": "Implement Document Upload API Endpoint",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on implement document upload api endpoint.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		},
+		{
+			"taskId": 7,
+			"taskTitle": "Implement Document Status API Endpoint",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on implement document status api endpoint.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		},
+		{
+			"taskId": 9,
+			"taskTitle": "Implement Database Comparison Logic",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on implement database comparison logic.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		},
+		{
+			"taskId": 11,
+			"taskTitle": "Implement Document Results API Endpoint",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on implement document results api endpoint.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		},
+		{
+			"taskId": 13,
+			"taskTitle": "Implement Error Handling and Logging System",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on implement error handling and logging system.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		},
+		{
+			"taskId": 14,
+			"taskTitle": "Integrate OpenAI for Document Authenticity Verification",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on integrate openai for document authenticity verification.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		},
+		{
+			"taskId": 16,
+			"taskTitle": "Implement Document History API",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on implement document history api.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		}
+	]
+}
