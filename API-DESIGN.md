@@ -70,14 +70,14 @@ The Document Verification API follows a microservices architecture pattern with 
 
 ### Technology Stack
 
-- **Runtime & API Framework**: Deno with built-in TypeScript support for maximum speed
+- **API Framework**: Deno with automatic OpenAPI documentation
 - **Database**: PostgreSQL for transaction data and results storage
 - **Cache**: Redis for session management and performance optimization
 - **Storage**: Cloudflare S3 for secure document storage
 - **OCR Engine**: Llama Parse for text extraction
 - **AI Platform**: OpenAI for document authenticity verification
-- **Language**: TypeScript (native Deno support)
-- **Authentication**: Simple API key authentication
+- **Language**: TypeScript for type safety and developer experience
+- **Authentication**: JWT with API key authentication
 - **Monitoring**: Comprehensive logging and metrics collection
 
 ---
@@ -95,7 +95,7 @@ Upload and initiate processing of payment documents.
 ```http
 POST /api/v1/documents
 Content-Type: multipart/form-data
-X-API-Key: dv_prod_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6
+Authorization: Bearer {api_key}
 
 {
   "file": <binary_data>,
@@ -134,7 +134,7 @@ Check the current processing status of a document.
 
 ```http
 GET /api/v1/documents/doc_uuid_12345/status
-X-API-Key: dv_prod_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6
+Authorization: Bearer {api_key}
 ```
 
 **Response:**
@@ -176,7 +176,7 @@ Retrieve complete processing results for a document.
 
 ```http
 GET /api/v1/documents/doc_uuid_12345/results
-X-API-Key: dv_prod_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6
+Authorization: Bearer {api_key}
 ```
 
 **Response:**
@@ -187,19 +187,12 @@ X-API-Key: dv_prod_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6
     "document_id": "doc_uuid_12345",
     "processing_status": "completed",
     "extracted_data": {
-      "send_amount": "20000.00",
-      "send_currency": "RUB",
-      "receive_amount": "2342.33",
-      "receive_currency": "TJS",
-      "exchange_rate": "8.54",
-      "date": "2025-08-27",
-      "time": "12:49:34",
-      "recipient_name": "EVGENIY EGOROV",
-      "recipient_card_number": "•• 0630",
-      "destination_country": "Таджикистан",
-      "bank_name": "CJSC Dushanbe City Bank",
-      "commission": "0.00",
-      "transaction_id": "20250827175421024d5cb3be187405aa34f6f",
+      "amount": "150.00",
+      "currency": "USD",
+      "date": "2025-09-01",
+      "payment_method": "card",
+      "merchant": "Example Store",
+      "transaction_reference": "REF123456",
       "confidence_score": 0.95
     },
     "comparison_results": {
@@ -341,29 +334,12 @@ enum ProcessingStatus {
 
 ```typescript
 interface ExtractedData {
-  // Core transaction data
-  send_amount?: string;
-  send_currency?: string;
-  receive_amount?: string; 
-  receive_currency?: string;
-  exchange_rate?: string;
-  
-  // Date and time
+  amount?: string;
+  currency?: string;
   date?: string;
-  time?: string;
-  
-  // Recipient information
-  recipient_name?: string;
-  recipient_card_number?: string; // Masked: •• 1234
-  destination_country?: string;
-  bank_name?: string;
-  
-  // Transaction details
-  commission?: string;
-  transaction_id?: string;
-  operation_type?: 'card_transfer' | 'international_transfer' | 'payment';
-  
-  // Metadata
+  payment_method?: string;
+  merchant?: string;
+  transaction_reference?: string;
   additional_fields: Record<string, any>;
   confidence_score: number;      // Overall OCR confidence
   extraction_timestamp: DateTime;
@@ -459,22 +435,24 @@ Primary authentication method for service-to-service communication:
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
-#### API Key Structure
+#### JWT Token Structure
 
-```typescript
-// Simple API key format: dv_[environment]_[32_char_key]
-// Example: dv_prod_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6
-
-interface ApiKeyConfig {
-  key: string;
-  environment: 'dev' | 'staging' | 'prod';
-  permissions: string[];
-  rate_limits: {
-    requests_per_minute: number;
-    uploads_per_hour: number;
-  };
-  expires_at?: Date;
-  created_at: Date;
+```json
+{
+  "iss": "document-verification-api",
+  "sub": "client_id_12345",
+  "aud": "api.docverify.com",
+  "exp": 1693747200,
+  "iat": 1693743600,
+  "permissions": [
+    "documents:create",
+    "documents:read",
+    "documents:status"
+  ],
+  "rate_limits": {
+    "requests_per_minute": 100,
+    "uploads_per_hour": 50
+  }
 }
 ```
 
@@ -657,14 +635,14 @@ interface ErrorDetail {
 
 ## Performance & Scalability
 
-### Performance Requirements (Speed-First Approach)
+### Performance Requirements
 
 #### Response Time Targets
-- **Document Upload**: < 1 second
-- **Status Check**: < 50ms (cached)
-- **Results Retrieval**: < 200ms
-- **OCR Processing**: < 5 seconds
-- **AI Verification**: < 3 seconds (optional, can be skipped)
+- **Document Upload**: < 2 seconds
+- **Status Check**: < 100ms (cached)
+- **Results Retrieval**: < 500ms
+- **OCR Processing**: < 8 seconds
+- **AI Verification**: < 5 seconds
 
 #### Throughput Requirements
 - **Concurrent Uploads**: 100 documents/minute
@@ -677,13 +655,13 @@ interface ErrorDetail {
 
 ```yaml
 scaling_config:
-  deno_api_servers:
-    min_instances: 2      # Reduced for speed-first approach
-    max_instances: 10     # Simplified scaling
-    cpu_threshold: 80%    # Higher threshold for cost efficiency
-    memory_threshold: 85%
-    scale_up_cooldown: 180s  # Faster scaling
-    scale_down_cooldown: 300s
+  api_servers:
+    min_instances: 3
+    max_instances: 20
+    cpu_threshold: 70%
+    memory_threshold: 80%
+    scale_up_cooldown: 300s
+    scale_down_cooldown: 600s
   
   worker_processes:
     ocr_workers: 
@@ -773,19 +751,19 @@ interface ProcessingPipeline {
 interface LlamaParseConfig {
   endpoint: "https://api.llamaindex.ai/parsing";
   authentication: "api_key";
-  timeout_ms: 15000;    // Reduced for speed
+  timeout_ms: 30000;
   retry_strategy: {
-    max_attempts: 2;    // Fewer retries for speed
-    backoff_strategy: "linear";  // Simpler backoff
-    initial_delay_ms: 500;
+    max_attempts: 3;
+    backoff_strategy: "exponential";
+    initial_delay_ms: 1000;
   };
   
   supported_formats: ["pdf", "png", "jpg", "jpeg"];
   extraction_options: {
-    extract_tables: false;  // Disabled for speed
+    extract_tables: true;
     extract_images: false;
-    language: ["en", "ru"];  // Added Russian support
-    confidence_threshold: 0.7;  // Lower threshold for speed
+    language: "en";
+    confidence_threshold: 0.8;
   };
 }
 ```
@@ -1094,9 +1072,9 @@ def process_document(file_path: str, transaction_id: str):
 ### Phase 1: MVP (Weeks 1-6)
 
 #### Week 1-2: Foundation
-- [ ] Deno project setup with native TypeScript
-- [ ] PostgreSQL database schema implementation  
-- [ ] Simple API key authentication middleware
+- [ ] FastAPI project setup with TypeScript types
+- [ ] PostgreSQL database schema implementation
+- [ ] Basic authentication and security middleware
 - [ ] S3 integration for document storage
 - [ ] Core API endpoints structure
 

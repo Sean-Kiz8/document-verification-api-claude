@@ -1,6 +1,6 @@
 #!/usr/bin/env deno run --allow-net --allow-read --allow-env
 
-import { initializeDatabase, getDatabaseHealth } from "@config/database.ts";
+import { getDatabaseHealth, initializeDatabase } from "@config/database.ts";
 import { DocumentQueries, ProcessingLogQueries } from "@database/queries.ts";
 
 /**
@@ -10,18 +10,18 @@ import { DocumentQueries, ProcessingLogQueries } from "@database/queries.ts";
 
 async function testDatabaseConnection() {
   console.log("🔍 Testing database connection...");
-  
+
   try {
     await initializeDatabase();
     console.log("✅ Database connection successful");
-    
+
     const health = await getDatabaseHealth();
     console.log("📊 Database health:", {
       status: health.status,
       latency: health.latency ? `${health.latency}ms` : "N/A",
       lastCheck: health.lastCheck,
     });
-    
+
     return true;
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
@@ -32,12 +32,12 @@ async function testDatabaseConnection() {
 
 async function testDocumentOperations() {
   console.log("\n🔍 Testing document operations...");
-  
+
   try {
     // Test document creation
     const testDocument = {
       transaction_id: "test_txn_123",
-      dispute_id: "test_dispute_456", 
+      dispute_id: "test_dispute_456",
       user_id: "test_user_789",
       file_name: "test_receipt.pdf",
       file_size: 1024000, // 1MB
@@ -69,9 +69,9 @@ async function testDocumentOperations() {
     const updatedDoc = await DocumentQueries.updateStatus(
       createdDoc.id,
       "processing",
-      startTime
+      startTime,
     );
-    
+
     if (updatedDoc?.processing_status === "processing") {
       console.log("  ✅ Document status updated successfully");
     } else {
@@ -86,12 +86,12 @@ async function testDocumentOperations() {
       currency: "RUB",
       date: "2025-09-04",
       recipient: "Test User",
-      confidence: 0.95
+      confidence: 0.95,
     };
 
     const docWithData = await DocumentQueries.updateExtractedData(
       createdDoc.id,
-      extractedData
+      extractedData,
     );
 
     if (docWithData?.extracted_data) {
@@ -126,7 +126,7 @@ async function testDocumentOperations() {
 
 async function testProcessingLogs() {
   console.log("\n🔍 Testing processing logs...");
-  
+
   try {
     // Create a test document first
     const testDocument = {
@@ -136,7 +136,7 @@ async function testProcessingLogs() {
       file_size: 512000,
       mime_type: "application/pdf" as const,
       document_type: "payment_receipt" as const,
-      s3_key: "documents/test/test_log.pdf", 
+      s3_key: "documents/test/test_log.pdf",
       s3_bucket: "test-bucket",
       upload_timestamp: new Date(),
       processing_status: "queued" as const,
@@ -149,11 +149,11 @@ async function testProcessingLogs() {
     const logEntry = {
       document_id: doc.id,
       stage: "ocr_extraction",
-      status: "started", 
+      status: "started",
       started_at: new Date(),
       log_level: "INFO" as const,
       message: "Starting OCR extraction process",
-      metadata: { version: "1.0", model: "test" }
+      metadata: { version: "1.0", model: "test" },
     };
 
     console.log("  Creating processing log...");
@@ -163,7 +163,7 @@ async function testProcessingLogs() {
     // Retrieve logs for document
     console.log("  Retrieving logs for document...");
     const logs = await ProcessingLogQueries.getByDocumentId(doc.id);
-    
+
     if (logs.length > 0) {
       console.log("  ✅ Processing logs retrieved:", logs.length, "entries");
     } else {
@@ -185,7 +185,7 @@ async function testProcessingLogs() {
 
 async function runDatabaseTests() {
   console.log("🚀 Starting Database Tests");
-  console.log("=" .repeat(50));
+  console.log("=".repeat(50));
 
   const results = {
     connection: false,
@@ -199,7 +199,7 @@ async function runDatabaseTests() {
   if (results.connection) {
     // Test document operations
     results.documents = await testDocumentOperations();
-    
+
     // Test processing logs
     results.logs = await testProcessingLogs();
   }
@@ -210,9 +210,9 @@ async function runDatabaseTests() {
   console.log("  Database Connection:", results.connection ? "✅ PASSED" : "❌ FAILED");
   console.log("  Document Operations:", results.documents ? "✅ PASSED" : "❌ FAILED");
   console.log("  Processing Logs:    ", results.logs ? "✅ PASSED" : "❌ FAILED");
-  
-  const allPassed = Object.values(results).every(result => result);
-  
+
+  const allPassed = Object.values(results).every((result) => result);
+
   if (allPassed) {
     console.log("\n🎉 All database tests PASSED!");
     return 0;

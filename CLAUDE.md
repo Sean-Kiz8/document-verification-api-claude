@@ -3,6 +3,7 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Task Master AI Instructions
+
 **Import Task Master's development workflow commands and guidelines, treat as if import is in the main CLAUDE.md file.**
 @./.taskmaster/CLAUDE.md
 
@@ -11,8 +12,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Document Verification API** - Anti-fraud system for automatic payment document verification and processing. This is a Deno-based TypeScript API that provides OCR extraction, database comparison, and AI-powered authenticity verification of payment documents.
 
 ### Architecture
+
 - **Runtime**: Deno with native TypeScript support
-- **Database**: PostgreSQL for transaction data and results storage  
+- **Database**: PostgreSQL for transaction data and results storage
 - **Cache**: Redis for session management and performance optimization
 - **Storage**: Cloudflare S3 for secure document storage
 - **OCR**: Llama Parse for text extraction
@@ -20,6 +22,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Authentication**: Simple API key authentication
 
 ### Key Features
+
 1. **OCR Processing** - Automatic text extraction from PNG/PDF payment documents
 2. **Data Comparison** - Compare extracted data with database transaction records
 3. **AI Verification** - OpenAI-powered authenticity scoring and fraud detection
@@ -29,6 +32,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Development Commands
 
 ### Project Setup
+
 ```bash
 # Initialize Deno project (when implementation begins)
 deno init
@@ -47,6 +51,7 @@ deno check main.ts
 ```
 
 ### Running the Application
+
 ```bash
 # Development server
 deno run --allow-net --allow-read --allow-env main.ts
@@ -59,6 +64,7 @@ deno run --allow-net --allow-read --allow-env --allow-write main.ts
 ```
 
 ### Testing
+
 ```bash
 # Run all tests
 deno test
@@ -77,6 +83,7 @@ deno test --watch
 ```
 
 ### Database Operations
+
 ```bash
 # Run database migrations (once implemented)
 deno run --allow-net --allow-read scripts/migrate.ts
@@ -91,6 +98,7 @@ deno run --allow-net --allow-read scripts/reset_db.ts
 ## Core Architecture
 
 ### API Structure
+
 ```
 src/
 ├── main.ts                 # Application entry point
@@ -127,6 +135,7 @@ src/
 ```
 
 ### Processing Pipeline
+
 1. **Document Upload** → S3 storage with validation
 2. **OCR Extraction** → Llama Parse text extraction
 3. **Data Comparison** → Match against transaction database
@@ -136,6 +145,7 @@ src/
 ## Environment Configuration
 
 ### Required Environment Variables
+
 ```bash
 # Database
 DATABASE_URL="postgresql://user:password@localhost:5432/docverify"
@@ -160,6 +170,7 @@ ENVIRONMENT="development"
 ```
 
 ### Development Setup
+
 1. Copy `.env.example` to `.env` and configure API keys
 2. Ensure PostgreSQL and Redis are running locally
 3. Create database: `createdb document_verification`
@@ -169,12 +180,14 @@ ENVIRONMENT="development"
 ## Key Implementation Guidelines
 
 ### Deno Best Practices
+
 - Use URL imports for external dependencies in `deps.ts`
 - Leverage Deno's built-in TypeScript support - no build step needed
 - Use Deno's standard library when possible
 - Implement proper permission flags (`--allow-net`, `--allow-read`, etc.)
 
 ### Security Requirements
+
 - All file uploads must be validated for type and size
 - Implement rate limiting on all endpoints (10 uploads/minute)
 - Use JWT tokens for API authentication
@@ -183,6 +196,7 @@ ENVIRONMENT="development"
 - Sanitize all OCR extracted data before database storage
 
 ### Performance Targets
+
 - Document upload: < 1 second response
 - OCR processing: < 5 seconds
 - Status checks: < 50ms (cached)
@@ -190,6 +204,7 @@ ENVIRONMENT="development"
 - 99.9% uptime requirement
 
 ### Error Handling
+
 - Use structured error responses with error codes
 - Implement circuit breakers for external services
 - Graceful degradation when AI service unavailable
@@ -199,7 +214,9 @@ ENVIRONMENT="development"
 ## API Design Patterns
 
 ### Response Format
+
 All endpoints return standardized JSON:
+
 ```typescript
 {
   "status": "success" | "error",
@@ -214,11 +231,14 @@ All endpoints return standardized JSON:
 ```
 
 ### Authentication
+
 API key format: `dv_[environment]_[32_char_key]`
 Header: `X-API-Key: dv_prod_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6`
 
 ### Async Processing
+
 Long operations return immediately with:
+
 - `document_id` for tracking
 - `processing_status`: "queued" | "processing" | "completed" | "failed"
 - Status polling endpoint for updates
@@ -226,6 +246,7 @@ Long operations return immediately with:
 ## Testing Strategy
 
 ### Test Structure
+
 ```
 tests/
 ├── unit/                   # Unit tests for individual functions
@@ -242,6 +263,7 @@ tests/
 ```
 
 ### Test Data
+
 - Use test fixtures for sample documents
 - Mock external API responses (Llama Parse, OpenAI)
 - Test database with isolated transactions
@@ -250,13 +272,16 @@ tests/
 ## Monitoring and Observability
 
 ### Logging
+
 - Structured JSON logging with correlation IDs
 - Log levels: DEBUG, INFO, WARN, ERROR
 - Security: Never log API keys or sensitive document content
 - Performance: Log processing times for each stage
 
 ### Metrics
+
 Key metrics to track:
+
 - Document processing success/failure rates
 - OCR accuracy scores
 - AI authenticity confidence distributions
@@ -264,8 +289,10 @@ Key metrics to track:
 - Queue depths and processing times
 
 ### Health Checks
+
 Implement `/health` endpoint checking:
+
 - Database connectivity
-- Redis availability  
+- Redis availability
 - S3 storage access
 - External API health (Llama Parse, OpenAI)

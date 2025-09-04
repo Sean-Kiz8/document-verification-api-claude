@@ -31,7 +31,7 @@ class DatabaseManager {
 
     try {
       const appConfig = await getConfig();
-      
+
       this.config = {
         connectionString: appConfig.databaseUrl,
         poolSize: parseInt(Deno.env.get("DB_POOL_SIZE") || "10"),
@@ -43,14 +43,13 @@ class DatabaseManager {
       this.pool = new PostgresPool(
         this.config.connectionString,
         this.config.poolSize,
-        true // lazy connection
+        true, // lazy connection
       );
 
       // Test initial connection
       await this.testConnection();
-      
+
       this.logger.info(`Database pool initialized with ${this.config.poolSize} connections`);
-      
     } catch (error) {
       this.logger.error("Failed to initialize database pool:", error);
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
@@ -79,13 +78,12 @@ class DatabaseManager {
     try {
       using client = await this.pool.connect();
       const result = await client.queryObject("SELECT 1 as test, NOW() as timestamp");
-      
+
       if (result.rows.length === 0) {
         throw new Error("Database connection test failed - no results");
       }
 
       this.logger.info("Database connection test successful");
-      
     } catch (error) {
       this.logger.error("Database connection test failed:", error);
       throw error;
@@ -115,11 +113,11 @@ class DatabaseManager {
 
     try {
       const startTime = Date.now();
-      
+
       // Test connection and measure latency
       using client = await this.pool.connect();
       await client.queryObject("SELECT 1");
-      
+
       const latency = Date.now() - startTime;
 
       return {
@@ -127,15 +125,14 @@ class DatabaseManager {
         connections: {
           total: this.config?.poolSize || 0,
           active: 0, // PostgresPool doesn't expose this info
-          idle: 0,   // PostgresPool doesn't expose this info
+          idle: 0, // PostgresPool doesn't expose this info
         },
         lastCheck: new Date().toISOString(),
         latency,
       };
-      
     } catch (error) {
       this.logger.error("Database health check failed:", error);
-      
+
       return {
         status: "unhealthy",
         connections: { total: 0, active: 0, idle: 0 },
@@ -148,8 +145,8 @@ class DatabaseManager {
    * Execute a query with automatic connection management
    */
   async query<T>(
-    sql: string, 
-    params?: unknown[]
+    sql: string,
+    params?: unknown[],
   ): Promise<T[]> {
     if (!this.pool) {
       throw new Error("Database pool not initialized");
@@ -159,7 +156,6 @@ class DatabaseManager {
       using client = await this.pool.connect();
       const result = await client.queryObject<T>(sql, params);
       return result.rows;
-      
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
       this.logger.error("Database query failed:", { sql, error: errorMessage });
@@ -171,8 +167,8 @@ class DatabaseManager {
    * Execute a query and return single result
    */
   async queryOne<T>(
-    sql: string, 
-    params?: unknown[]
+    sql: string,
+    params?: unknown[],
   ): Promise<T | null> {
     const results = await this.query<T>(sql, params);
     return results.length > 0 ? results[0] || null : null;
@@ -182,20 +178,19 @@ class DatabaseManager {
    * Execute multiple queries in a transaction
    */
   async transaction<T>(
-    callback: (client: any) => Promise<T>
+    callback: (client: any) => Promise<T>,
   ): Promise<T> {
     if (!this.pool) {
       throw new Error("Database pool not initialized");
     }
 
     using client = await this.pool.connect();
-    
+
     try {
       await client.queryObject("BEGIN");
       const result = await callback(client);
       await client.queryObject("COMMIT");
       return result;
-      
     } catch (error) {
       await client.queryObject("ROLLBACK");
       this.logger.error("Database transaction failed:", error);
@@ -259,7 +254,7 @@ export async function query<T>(sql: string, params?: unknown[]): Promise<T[]> {
 }
 
 /**
- * Helper function for single row queries  
+ * Helper function for single row queries
  */
 export async function queryOne<T>(sql: string, params?: unknown[]): Promise<T | null> {
   return databaseManager.queryOne<T>(sql, params);
@@ -269,7 +264,7 @@ export async function queryOne<T>(sql: string, params?: unknown[]): Promise<T | 
  * Helper function for transactions
  */
 export async function transaction<T>(
-  callback: (client: any) => Promise<T>
+  callback: (client: any) => Promise<T>,
 ): Promise<T> {
   return databaseManager.transaction(callback);
 }

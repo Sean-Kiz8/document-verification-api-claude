@@ -1,5 +1,5 @@
 import { query, queryOne, transaction } from "@config/database.ts";
-import { generateUuid } from "@/deps.ts";
+import { v4 as generateUuid } from "@/deps.ts";
 
 /**
  * Database Queries Module
@@ -135,9 +135,9 @@ export const DocumentQueries = {
    * Get documents by user ID
    */
   async getByUserId(
-    userId: string, 
-    limit = 50, 
-    offset = 0
+    userId: string,
+    limit = 50,
+    offset = 0,
   ): Promise<Document[]> {
     const sql = `
       SELECT * FROM documents 
@@ -153,7 +153,7 @@ export const DocumentQueries = {
    */
   async getByStatus(
     status: Document["processing_status"],
-    limit = 100
+    limit = 100,
   ): Promise<Document[]> {
     const sql = `
       SELECT * FROM documents 
@@ -171,7 +171,7 @@ export const DocumentQueries = {
     id: string,
     status: Document["processing_status"],
     startedAt?: Date,
-    completedAt?: Date
+    completedAt?: Date,
   ): Promise<Document | null> {
     const sql = `
       UPDATE documents 
@@ -189,8 +189,8 @@ export const DocumentQueries = {
    * Update extracted data
    */
   async updateExtractedData(
-    id: string, 
-    extractedData: any
+    id: string,
+    extractedData: any,
   ): Promise<Document | null> {
     const sql = `
       UPDATE documents 
@@ -205,8 +205,8 @@ export const DocumentQueries = {
    * Update comparison results
    */
   async updateComparisonResults(
-    id: string, 
-    comparisonResults: any
+    id: string,
+    comparisonResults: any,
   ): Promise<Document | null> {
     const sql = `
       UPDATE documents 
@@ -223,7 +223,7 @@ export const DocumentQueries = {
   async updateAuthenticity(
     id: string,
     score: number,
-    details: any
+    details: any,
   ): Promise<Document | null> {
     const sql = `
       UPDATE documents 
@@ -264,9 +264,9 @@ export const DocumentQueries = {
         COUNT(*) FILTER (WHERE processing_status = 'cancelled') as cancelled
       FROM documents
     `;
-    
+
     const result = await queryOne<any>(sql);
-    
+
     return {
       total: parseInt(result?.total || "0"),
       recent_24h: parseInt(result?.recent_24h || "0"),
@@ -276,9 +276,9 @@ export const DocumentQueries = {
         completed: parseInt(result?.completed || "0"),
         failed: parseInt(result?.failed || "0"),
         cancelled: parseInt(result?.cancelled || "0"),
-      }
+      },
     };
-  }
+  },
 };
 
 // Processing Log queries
@@ -338,7 +338,7 @@ export const ProcessingLogQueries = {
       LIMIT $1
     `;
     return query<ProcessingLog>(sql, [limit]);
-  }
+  },
 };
 
 // API Key queries
@@ -365,10 +365,10 @@ export const ApiKeyQueries = {
       WHERE id = $1
     `;
     await query(sql, [id]);
-  }
+  },
 };
 
-// Request Log queries  
+// Request Log queries
 export const RequestLogQueries = {
   /**
    * Create request log
@@ -401,5 +401,5 @@ export const RequestLogQueries = {
     }
 
     return result;
-  }
+  },
 };

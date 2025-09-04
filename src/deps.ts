@@ -4,14 +4,7 @@
  */
 
 // HTTP Framework
-export {
-  Application,
-  Router,
-  Context,
-  Status,
-  isHttpError,
-  httpErrors,
-} from "oak";
+export { Application, Context, httpErrors, isHttpError, Router, Status } from "oak";
 
 // export { getQuery } from "https://deno.land/x/oak@v16.1.0/helpers.ts"; // Not used yet
 
@@ -29,44 +22,47 @@ export { load as loadEnv } from "std/dotenv";
 export * as log from "std/log";
 
 // Testing
-export {
-  assertEquals,
-  assertExists,
-  assertRejects,
-  assertThrows,
-} from "std/assert";
+export { assertEquals, assertExists, assertRejects, assertThrows } from "std/assert";
 
 export {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
   describe,
   it,
-  beforeAll,
-  afterAll,
-  beforeEach,
-  afterEach,
 } from "https://deno.land/std@0.224.0/testing/bdd.ts";
 
 // HTTP utilities
 export { STATUS_CODE as HttpStatus } from "https://deno.land/std@0.224.0/http/status.ts";
 
 // Cryptography
-export { encodeBase64 as base64Encode, decodeBase64 as base64Decode } from "https://deno.land/std@0.224.0/encoding/base64.ts";
-export { encodeHex as hexEncode, decodeHex as hexDecode } from "https://deno.land/std@0.224.0/encoding/hex.ts";
+export {
+  decodeBase64 as base64Decode,
+  encodeBase64 as base64Encode,
+} from "https://deno.land/std@0.224.0/encoding/base64.ts";
+export {
+  decodeHex as hexDecode,
+  encodeHex as hexEncode,
+} from "https://deno.land/std@0.224.0/encoding/hex.ts";
 
 // Validation
 export { z } from "zod";
 
 // UUID generation
-export { v4 as generateUuid } from "https://deno.land/std@0.224.0/uuid/mod.ts";
+export { v4 } from "https://deno.land/std@0.224.0/uuid/mod.ts";
 
 // Date utilities
-export { format as formatDate, parse as parseDate } from "https://deno.land/std@0.224.0/datetime/mod.ts";
+export {
+  format as formatDate,
+  parse as parseDate,
+} from "https://deno.land/std@0.224.0/datetime/mod.ts";
 
 // File system operations
 export { ensureDir, exists } from "https://deno.land/std@0.224.0/fs/mod.ts";
 
-// S3 SDK for Cloudflare R2 - TODO: Add when implementing S3 integration
-// export { S3Client, GetObjectCommand, PutObjectCommand, DeleteObjectCommand } from "https://deno.land/x/aws_api@v0.8.2/services/s3/mod.ts";
-// export { ApiFactory } from "https://deno.land/x/aws_api@v0.8.2/client/mod.ts";
+// S3/R2 Client for Cloudflare R2
+export { AwsClient } from "npm:aws4fetch@1.0.20";
 
 // Types
 export type { Middleware, Next } from "oak";

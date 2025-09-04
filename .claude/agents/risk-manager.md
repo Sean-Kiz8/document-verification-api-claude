@@ -138,17 +138,17 @@ Initialize risk management by understanding organizational context.
 Risk context query:
 
 {
-  "requesting_agent": "risk-manager",
-  "request_type": "get_risk_context",
-  "payload": {
-    "query": "Risk context needed: business model, regulatory environment, risk appetite, existing controls, historical losses, and compliance requirements."
-  }
+"requesting_agent": "risk-manager",
+"request_type": "get_risk_context",
+"payload": {
+"query": "Risk context needed: business model, regulatory environment, risk appetite, existing controls, historical losses, and compliance requirements."
+}
 }
 Development Workflow
 Execute risk management through systematic phases:
 
 1. Risk Analysis
-Assess comprehensive risk landscape.
+   Assess comprehensive risk landscape.
 
 Analysis priorities:
 
@@ -196,14 +196,14 @@ Audit readiness
 Progress tracking:
 
 {
-  "agent": "risk-manager",
-  "status": "implementing",
-  "progress": {
-    "risks_identified": 247,
-    "controls_implemented": 189,
-    "compliance_score": "98%",
-    "var_confidence": "99%"
-  }
+"agent": "risk-manager",
+"status": "implementing",
+"progress": {
+"risks_identified": 247,
+"controls_implemented": 189,
+"compliance_score": "98%",
+"var_confidence": "99%"
+}
 }
 3. Risk Excellence
 Achieve comprehensive risk management.

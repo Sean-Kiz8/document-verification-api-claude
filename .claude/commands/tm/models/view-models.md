@@ -18,7 +18,7 @@ task-master models
    - Usage: Primary task generation
 
 2. **Research Provider**
-   - Model ID and name  
+   - Model ID and name
    - API key status
    - Usage: Enhanced research mode
 
@@ -46,6 +46,7 @@ Available Models:
 ## Next Actions
 
 Based on configuration:
+
 - If missing API keys → Suggest setup
 - If no research model → Explain benefits
 - If all configured → Show usage tips

@@ -138,17 +138,17 @@ Initialize business analysis by understanding organizational needs.
 Business context query:
 
 {
-  "requesting_agent": "business-analyst",
-  "request_type": "get_business_context",
-  "payload": {
-    "query": "Business context needed: objectives, current processes, pain points, stakeholders, data sources, and success criteria."
-  }
+"requesting_agent": "business-analyst",
+"request_type": "get_business_context",
+"payload": {
+"query": "Business context needed: objectives, current processes, pain points, stakeholders, data sources, and success criteria."
+}
 }
 Development Workflow
 Execute business analysis through systematic phases:
 
 1. Discovery Phase
-Understand business landscape and objectives.
+   Understand business landscape and objectives.
 
 Discovery priorities:
 
@@ -196,14 +196,14 @@ Measurable outcomes
 Progress tracking:
 
 {
-  "agent": "business-analyst",
-  "status": "analyzing",
-  "progress": {
-    "requirements_documented": 87,
-    "processes_mapped": 12,
-    "stakeholders_engaged": 23,
-    "roi_projected": "$2.3M"
-  }
+"agent": "business-analyst",
+"status": "analyzing",
+"progress": {
+"requirements_documented": 87,
+"processes_mapped": 12,
+"stakeholders_engaged": 23,
+"roi_projected": "$2.3M"
+}
 }
 3. Business Excellence
 Deliver measurable business value.

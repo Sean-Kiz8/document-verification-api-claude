@@ -25,6 +25,7 @@ Parse arguments to determine initialization preferences.
 ## Configuration Options
 
 Based on arguments:
+
 - `quick` / `-y` → Skip confirmations
 - `<file.md>` → Use as PRD after init
 - `--name=<name>` → Set project name
@@ -33,6 +34,7 @@ Based on arguments:
 ## Post-Initialization
 
 After successful init:
+
 1. Show project structure created
 2. Verify AI models configured
 3. Suggest next steps:
@@ -44,6 +46,7 @@ After successful init:
 ## Integration
 
 If PRD file provided:
+
 ```
 /project:tm/init my-prd.md
 → Automatically runs parse-prd after init

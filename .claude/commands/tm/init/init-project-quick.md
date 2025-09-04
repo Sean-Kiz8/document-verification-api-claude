@@ -28,6 +28,7 @@ task-master init -y
 ## Next Steps
 
 After quick init:
+
 1. Configure AI models if needed:
    ```
    /project:tm/models/setup
