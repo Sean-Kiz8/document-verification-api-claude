@@ -1,8 +1,8 @@
 # Document Verification API - Comprehensive Design Document
 
-**Version:** 1.0  
-**Date:** September 4, 2025  
-**System:** Anti-Fraud Document Verification API  
+**Version:** 1.0\
+**Date:** September 4, 2025\
+**System:** Anti-Fraud Document Verification API\
 **Author:** API Design Specialist
 
 ---
@@ -109,6 +109,7 @@ Authorization: Bearer {api_key}
 ```
 
 **Response:**
+
 ```json
 {
   "status": "success",
@@ -138,6 +139,7 @@ Authorization: Bearer {api_key}
 ```
 
 **Response:**
+
 ```json
 {
   "status": "success",
@@ -180,6 +182,7 @@ Authorization: Bearer {api_key}
 ```
 
 **Response:**
+
 ```json
 {
   "status": "success",
@@ -303,19 +306,19 @@ Authorization: Bearer {api_key}
 
 ```typescript
 interface Document {
-  id: string;                    // UUID v4
-  transaction_id: string;        // Reference to transaction
-  dispute_id?: string;           // Optional dispute reference
-  user_id: string;              // User who uploaded
-  file_name: string;            // Original filename
-  file_size: number;            // File size in bytes
-  mime_type: string;            // MIME type
-  s3_key: string;               // S3 storage key
-  upload_timestamp: DateTime;    // Upload time
+  id: string; // UUID v4
+  transaction_id: string; // Reference to transaction
+  dispute_id?: string; // Optional dispute reference
+  user_id: string; // User who uploaded
+  file_name: string; // Original filename
+  file_size: number; // File size in bytes
+  mime_type: string; // MIME type
+  s3_key: string; // S3 storage key
+  upload_timestamp: DateTime; // Upload time
   processing_status: ProcessingStatus;
   extracted_data?: ExtractedData;
   comparison_results?: ComparisonResults;
-  authenticity_score?: number;  // 0-1 confidence score
+  authenticity_score?: number; // 0-1 confidence score
   processing_logs: ProcessingLog[];
   created_at: DateTime;
   updated_at: DateTime;
@@ -323,10 +326,10 @@ interface Document {
 
 enum ProcessingStatus {
   QUEUED = "queued",
-  PROCESSING = "processing", 
+  PROCESSING = "processing",
   COMPLETED = "completed",
   FAILED = "failed",
-  CANCELLED = "cancelled"
+  CANCELLED = "cancelled",
 }
 ```
 
@@ -341,7 +344,7 @@ interface ExtractedData {
   merchant?: string;
   transaction_reference?: string;
   additional_fields: Record<string, any>;
-  confidence_score: number;      // Overall OCR confidence
+  confidence_score: number; // Overall OCR confidence
   extraction_timestamp: DateTime;
 }
 ```
@@ -408,16 +411,16 @@ const DocumentUploadSchema = {
   file: {
     required: true,
     max_size: 10 * 1024 * 1024, // 10MB
-    allowed_types: ["image/png", "image/jpeg", "application/pdf"]
+    allowed_types: ["image/png", "image/jpeg", "application/pdf"],
   },
   transaction_id: {
     required: true,
-    pattern: /^txn_[a-zA-Z0-9]{8,32}$/
+    pattern: /^txn_[a-zA-Z0-9]{8,32}$/,
   },
   document_type: {
     required: true,
-    enum: ["payment_receipt", "bank_statement", "invoice", "other"]
-  }
+    enum: ["payment_receipt", "bank_statement", "invoice", "other"],
+  },
 };
 ```
 
@@ -494,17 +497,17 @@ rate_limits:
   global:
     requests_per_second: 10
     burst_capacity: 50
-  
+
   per_client:
     document_uploads:
       per_minute: 10
       per_hour: 100
       per_day: 1000
-    
+
     status_checks:
       per_minute: 60
       per_hour: 3600
-  
+
   penalties:
     abuse_threshold: 1000
     cool_down_minutes: 15
@@ -528,12 +531,14 @@ Referrer-Policy: strict-origin-when-cross-origin
 ### HTTP Status Code Strategy
 
 #### Success Codes
+
 - **200 OK**: Standard successful response
 - **201 Created**: Resource successfully created
 - **202 Accepted**: Request accepted for async processing
 - **204 No Content**: Successful operation with no response body
 
 #### Client Error Codes
+
 - **400 Bad Request**: Invalid request format or parameters
 - **401 Unauthorized**: Authentication required or failed
 - **403 Forbidden**: Authenticated but insufficient permissions
@@ -545,6 +550,7 @@ Referrer-Policy: strict-origin-when-cross-origin
 - **429 Too Many Requests**: Rate limit exceeded
 
 #### Server Error Codes
+
 - **500 Internal Server Error**: Generic server error
 - **502 Bad Gateway**: Upstream service failure
 - **503 Service Unavailable**: Temporary service unavailability
@@ -584,7 +590,7 @@ interface ErrorDetail {
       "http_status": 415
     },
     "FILE_TOO_LARGE": {
-      "code": "E1002", 
+      "code": "E1002",
       "message": "File size exceeds 10MB limit",
       "http_status": 413
     },
@@ -594,7 +600,7 @@ interface ErrorDetail {
       "http_status": 400
     }
   },
-  
+
   "processing_errors": {
     "OCR_EXTRACTION_FAILED": {
       "code": "E2001",
@@ -614,7 +620,7 @@ interface ErrorDetail {
       "fallback_behavior": "continue_without_ai"
     }
   },
-  
+
   "infrastructure_errors": {
     "S3_UPLOAD_FAILED": {
       "code": "E3001",
@@ -638,6 +644,7 @@ interface ErrorDetail {
 ### Performance Requirements
 
 #### Response Time Targets
+
 - **Document Upload**: < 2 seconds
 - **Status Check**: < 100ms (cached)
 - **Results Retrieval**: < 500ms
@@ -645,6 +652,7 @@ interface ErrorDetail {
 - **AI Verification**: < 5 seconds
 
 #### Throughput Requirements
+
 - **Concurrent Uploads**: 100 documents/minute
 - **Peak Load**: 500 requests/second
 - **Daily Volume**: 50,000 documents
@@ -662,13 +670,13 @@ scaling_config:
     memory_threshold: 80%
     scale_up_cooldown: 300s
     scale_down_cooldown: 600s
-  
+
   worker_processes:
-    ocr_workers: 
+    ocr_workers:
       min: 2
       max: 10
       queue_threshold: 50
-    
+
     ai_workers:
       min: 1
       max: 5
@@ -682,13 +690,13 @@ interface CacheStrategy {
   redis_config: {
     cluster_mode: true;
     ttl_settings: {
-      document_status: 300;      // 5 minutes
-      extracted_data: 3600;      // 1 hour
+      document_status: 300; // 5 minutes
+      extracted_data: 3600; // 1 hour
       authenticity_results: 7200; // 2 hours
-      transaction_data: 1800;    // 30 minutes
+      transaction_data: 1800; // 30 minutes
     };
   };
-  
+
   cache_patterns: {
     read_through: ["transaction_data"];
     write_through: ["document_status"];
@@ -728,9 +736,9 @@ interface ProcessingPipeline {
       timeout_seconds: 90;
       retry_count: 1;
       optional: true;
-    }
+    },
   ];
-  
+
   queue_config: {
     priority_levels: 3;
     max_retry_attempts: 3;
@@ -757,7 +765,7 @@ interface LlamaParseConfig {
     backoff_strategy: "exponential";
     initial_delay_ms: 1000;
   };
-  
+
   supported_formats: ["pdf", "png", "jpg", "jpeg"];
   extraction_options: {
     extract_tables: true;
@@ -775,7 +783,7 @@ interface OpenAIConfig {
   model: "gpt-4-vision-preview";
   max_tokens: 1000;
   temperature: 0.1;
-  
+
   authenticity_prompt: `
     Analyze this payment document for authenticity.
     Look for signs of manipulation, inconsistencies, or forgery.
@@ -800,13 +808,13 @@ interface S3Config {
     type: "SSE-KMS";
     key_id: "alias/document-verification-key";
   };
-  
+
   lifecycle_policies: {
     transition_to_ia: "30_days";
     transition_to_glacier: "90_days";
     delete_after: "7_years";
   };
-  
+
   access_patterns: {
     upload_expiry: "15_minutes";
     download_expiry: "24_hours";
@@ -866,7 +874,7 @@ CREATE INDEX idx_processing_logs_document_id ON processing_logs(document_id);
 logging:
   level: INFO
   format: json
-  
+
   structured_fields:
     - request_id
     - user_id
@@ -875,7 +883,7 @@ logging:
     - processing_stage
     - duration_ms
     - error_code
-  
+
   sensitive_data_masking:
     - credit_card_numbers
     - bank_account_numbers
@@ -889,26 +897,26 @@ logging:
 interface MetricsConfig {
   application_metrics: [
     "documents_uploaded_total",
-    "documents_processed_total", 
+    "documents_processed_total",
     "processing_duration_seconds",
     "ocr_accuracy_score",
     "ai_confidence_score",
-    "error_rate_by_type"
+    "error_rate_by_type",
   ];
-  
+
   infrastructure_metrics: [
     "api_response_time",
     "database_connection_pool_usage",
     "s3_upload_success_rate",
     "redis_cache_hit_rate",
-    "queue_depth"
+    "queue_depth",
   ];
-  
+
   business_metrics: [
     "fraud_detection_rate",
-    "document_authenticity_distribution", 
+    "document_authenticity_distribution",
     "processing_cost_per_document",
-    "customer_satisfaction_score"
+    "customer_satisfaction_score",
   ];
 }
 ```
@@ -927,32 +935,32 @@ info:
   description: |
     Anti-fraud document verification system that provides OCR extraction,
     database comparison, and AI-powered authenticity verification.
-    
+
     ## Authentication
     All endpoints require API key authentication via Bearer token.
-    
+
     ## Rate Limits
     - Document uploads: 10/minute, 100/hour
     - Status checks: 60/minute
-    
+
     ## Processing Flow
     1. Upload document via POST /documents
-    2. Poll status via GET /documents/{id}/status  
+    2. Poll status via GET /documents/{id}/status
     3. Retrieve results via GET /documents/{id}/results
-  
+
   contact:
     name: API Support
     email: api-support@company.com
-  
+
   license:
     name: Proprietary
-    
+
 servers:
   - url: https://api.docverify.com/v1
     description: Production server
   - url: https://staging-api.docverify.com/v1
     description: Staging server
-    
+
 security:
   - ApiKeyAuth: []
 
@@ -977,14 +985,14 @@ sdk_generation:
     - java
     - csharp
     - go
-  
+
   features:
     - automatic_retries
     - request_timeout_handling
     - response_validation
     - error_type_mapping
     - async_operation_helpers
-  
+
   documentation:
     - quickstart_guide
     - authentication_examples
@@ -998,11 +1006,11 @@ sdk_generation:
 #### TypeScript SDK Example
 
 ```typescript
-import { DocumentVerificationAPI } from '@company/docverify-sdk';
+import { DocumentVerificationAPI } from "@company/docverify-sdk";
 
 const client = new DocumentVerificationAPI({
-  apiKey: 'your_api_key_here',
-  environment: 'production'
+  apiKey: "your_api_key_here",
+  environment: "production",
 });
 
 async function processDocument() {
@@ -1010,23 +1018,22 @@ async function processDocument() {
     // Upload document
     const upload = await client.documents.upload({
       file: fileBuffer,
-      transaction_id: 'txn_12345',
-      document_type: 'payment_receipt'
+      transaction_id: "txn_12345",
+      document_type: "payment_receipt",
     });
-    
+
     // Poll for completion
     const result = await client.documents.waitForCompletion(
       upload.document_id,
-      { timeout: 60000 }
+      { timeout: 60000 },
     );
-    
-    console.log('Processing completed:', result);
-    
+
+    console.log("Processing completed:", result);
   } catch (error) {
     if (error instanceof DocumentVerificationError) {
-      console.error('API Error:', error.code, error.message);
+      console.error("API Error:", error.code, error.message);
     } else {
-      console.error('Unexpected error:', error);
+      console.error("Unexpected error:", error);
     }
   }
 }
@@ -1072,6 +1079,7 @@ def process_document(file_path: str, transaction_id: str):
 ### Phase 1: MVP (Weeks 1-6)
 
 #### Week 1-2: Foundation
+
 - [ ] FastAPI project setup with TypeScript types
 - [ ] PostgreSQL database schema implementation
 - [ ] Basic authentication and security middleware
@@ -1079,6 +1087,7 @@ def process_document(file_path: str, transaction_id: str):
 - [ ] Core API endpoints structure
 
 #### Week 3-4: Core Processing
+
 - [ ] Document upload and validation pipeline
 - [ ] Llama Parse OCR integration
 - [ ] Database comparison logic implementation
@@ -1086,6 +1095,7 @@ def process_document(file_path: str, transaction_id: str):
 - [ ] Basic error handling and logging
 
 #### Week 5-6: API Completion
+
 - [ ] Status polling endpoints
 - [ ] Results retrieval endpoints
 - [ ] Rate limiting implementation
@@ -1095,12 +1105,14 @@ def process_document(file_path: str, transaction_id: str):
 ### Phase 2: Enhanced Features (Weeks 7-10)
 
 #### Week 7-8: AI Integration
+
 - [ ] OpenAI integration for authenticity verification
 - [ ] Advanced document analysis pipelines
 - [ ] Confidence scoring algorithms
 - [ ] AI fallback and error handling
 
 #### Week 9-10: Performance & Security
+
 - [ ] Async processing optimization
 - [ ] Advanced security hardening
 - [ ] Performance monitoring setup
@@ -1109,12 +1121,14 @@ def process_document(file_path: str, transaction_id: str):
 ### Phase 3: Scale & Compliance (Weeks 11-14)
 
 #### Week 11-12: Scalability
+
 - [ ] Auto-scaling infrastructure setup
 - [ ] Advanced caching strategies
 - [ ] Queue management optimization
 - [ ] Performance monitoring dashboards
 
 #### Week 13-14: Compliance & Analytics
+
 - [ ] Comprehensive audit logging
 - [ ] Historical analytics API
 - [ ] Compliance reporting features
@@ -1129,7 +1143,7 @@ This comprehensive API design document provides the blueprint for implementing a
 Key architectural decisions include:
 
 1. **Microservices Architecture**: Enables independent scaling and maintenance
-2. **Async Processing**: Handles long-running OCR and AI operations efficiently  
+2. **Async Processing**: Handles long-running OCR and AI operations efficiently
 3. **Comprehensive Security**: Multiple layers of protection for sensitive financial data
 4. **Developer-First Design**: Clear documentation, consistent responses, and SDK support
 5. **Operational Excellence**: Built-in monitoring, logging, and error handling
@@ -1139,12 +1153,13 @@ The phased implementation approach allows for incremental delivery of value whil
 ---
 
 **Next Steps:**
+
 1. Technical review and stakeholder approval
 2. Infrastructure setup and environment provisioning
 3. Phase 1 development kickoff
 4. Security audit and penetration testing planning
 5. Go-to-market strategy development
 
-**Document Status:** Ready for Technical Review  
-**Last Updated:** September 4, 2025  
+**Document Status:** Ready for Technical Review\
+**Last Updated:** September 4, 2025\
 **Review Required By:** September 11, 2025

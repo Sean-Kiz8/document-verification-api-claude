@@ -3,6 +3,7 @@ import { getConfig } from "@config/env.ts";
 import { getDatabaseHealth, initializeDatabase } from "@config/database.ts";
 import { getS3Health, initializeS3 } from "@config/s3.ts";
 import { getRedisHealth, initializeRedis } from "@config/redis.ts";
+import { getLlamaParseHealth, initializeLlamaParse } from "@config/llama_parse.ts";
 import { DocumentQueries } from "@database/queries.ts";
 import { storageService } from "@services/storage_service.ts";
 import { authMiddleware, skipAuth } from "@middleware/auth.ts";
@@ -54,6 +55,11 @@ async function startServer() {
     await initializeRedis();
     logger.info("Redis cache initialized successfully");
 
+    // Initialize Llama Parse OCR
+    logger.info("Initializing Llama Parse OCR...");
+    await initializeLlamaParse();
+    logger.info("Llama Parse OCR initialized successfully");
+
     // Create Oak application
     const app = new Application();
     const router = new Router();
@@ -64,11 +70,13 @@ async function startServer() {
         const dbHealth = await getDatabaseHealth();
         const s3Health = await getS3Health();
         const redisHealth = await getRedisHealth();
+        const llamaParseHealth = await getLlamaParseHealth();
         const storageStats = await storageService.getStorageStats();
 
         const overallHealthy = dbHealth.status === "healthy" &&
           s3Health.status === "healthy" &&
-          redisHealth.status === "healthy";
+          redisHealth.status === "healthy" &&
+          llamaParseHealth.status === "healthy";
 
         ctx.response.status = overallHealthy ? 200 : 503;
         ctx.response.body = {
@@ -91,6 +99,12 @@ async function startServer() {
           cache: {
             status: redisHealth.status,
             latency: redisHealth.latency ? `${redisHealth.latency}ms` : undefined,
+          },
+          ocr: {
+            status: llamaParseHealth.status,
+            service: "llama_parse",
+            apiKey: llamaParseHealth.apiKey,
+            latency: llamaParseHealth.latency ? `${llamaParseHealth.latency}ms` : undefined,
           },
         };
       } catch (error) {
